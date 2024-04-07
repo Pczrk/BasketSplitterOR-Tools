@@ -14,7 +14,9 @@ mvn test
 ## Approach
 Instead of making algorithm with branch and bound approach I used already written tools that use that approach since I could use any library.
 ## Mathematical description
-I find optimal number of deliveries in first model, then for every delivery type I use second model. With number of items <= 100 and number of different categories <= 10 solution is fast.
+Firstly with model 1 I find optimal number of delivery types for given items.
+Then for all delivery types, that given items can be shipped I run model 2.
+From model 2 solutions I pick solution with the greatest objective value and that's optimal solution.
 ### Model 1:
 #### Constants
 - **n** - number of items, limits variable **i** *(0 <= i < n)*
