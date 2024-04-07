@@ -15,6 +15,9 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * Junit4 class to test BasketSplitter class
+ */
 public class BasketSplitterTest {
     private static BasketSplitter basketSplitter;
     private static final String configName = "test_config.json";
@@ -23,9 +26,21 @@ public class BasketSplitterTest {
             "basket-1.json",
             "basket-2.json"
     };
+    /**
+     * List with list of items from specific basket.
+     */
     private static final List<List<String>> ListOfListOfItems = new ArrayList<>();
+    /**
+     * Map that maps names of the basket with its correct solution.
+     * First element of list is number of delivery types, second is number of items in type that has most items.
+     */
     private static Map<String,List<Integer>> solutions;
 
+    /**
+     * Initialization of necessary attributes
+     * @throws IOException If there was problem with I/O operation
+     * @throws NullPointerException If file doesn't exist
+     */
     @BeforeClass
     public static void init() throws IOException, NullPointerException {
         var classLoader = BasketSplitterTest.class.getClassLoader();
@@ -36,18 +51,26 @@ public class BasketSplitterTest {
         var absPath = new File(classLoader.getResource(configName).getFile()).getAbsolutePath();
         basketSplitter = new BasketSplitter(absPath);
 
-        //read list of items from files
         for (var filename:basketNames)
             ListOfListOfItems.add(basketSplitter.readItems(new File(classLoader.getResource(filename).getFile()).getAbsolutePath()));
     }
 
+    /**
+     * Helper method that reads and maps {@link #solutions}.
+     * @param path absolute path to file.
+     * @throws IOException If an I/O error occurs while reading configuration file.
+     */
     private static void readSolutions(String path) throws IOException {
         String jsonString = new String(Files.readAllBytes(Paths.get(path)));
         solutions = new ObjectMapper().readValue(jsonString, new TypeReference<>() {});
     }
 
+    /**
+     * Tests split() function of class BasketSplitter
+     * @throws BasketSplitter.SolutionNotFoundException If solution wasn't found.
+     */
     @Test
-    public void split() throws Exception {
+    public void split() throws BasketSplitter.SolutionNotFoundException {
         for (int i=0;i<ListOfListOfItems.size();i++){
             int optimalNumberOfDeliveries = solutions.get(basketNames[i]).get(0);
             int optimalMaxNumberOfItemsInMaxDeliveryType = solutions.get(basketNames[i]).get(1);

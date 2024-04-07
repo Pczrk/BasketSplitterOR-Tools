@@ -43,7 +43,7 @@ public class BasketSplitter {
      * @return Map with delivery types as keys and list of items as values.
      * @throws Exception If no solution was found
      */
-    public Map<String, List<String>> split(List<String> items) throws Exception {
+    public Map<String, List<String>> split(List<String> items) throws SolutionNotFoundException {
         int numberOfDeliveryTypes = firstSolution(items);
         Solution solution = null;
         for (int j=0;j< _deliveries.size();j++){
@@ -52,7 +52,7 @@ public class BasketSplitter {
         }
 
         if (solution == null)
-            throw new Exception("No solution was found");
+            throw new SolutionNotFoundException("No solution was found");
 
         return solution.deliveryToListOfItems;
     }
@@ -88,6 +88,11 @@ public class BasketSplitter {
                     _deliveries.add(delivery);
     }
 
+    /**
+     * Creates solver, variables and basic constraints that are used to calculate solution.
+     * @param items List of items to split.
+     * @return Object of class SolverWithVariables that contains solver and its variables.
+     */
     private SolverWithVariables baseSolverWithVariables(List<String> items){
         int n = items.size(), m = _deliveries.size();
         MPSolver solver = new MPSolver("base_problem",MPSolver.OptimizationProblemType.BOP_INTEGER_PROGRAMMING);
@@ -127,7 +132,15 @@ public class BasketSplitter {
         return new SolverWithVariables(itemVariables,deliveryVariables,solver);
     }
 
-    private int firstSolution(List<String> items){
+    /**
+     * Finds value of minimal delivery types.
+     * Due to model and integer programming specifics it might not find optimal solution,
+     * but always finds an optimal amount of delivery types.
+     * @param items List of items to split.
+     * @return Optimal amount of delivery types.
+     * @throws SolutionNotFoundException If solution wasn't found.
+     */
+    private int firstSolution(List<String> items) throws SolutionNotFoundException {
         int m = _deliveries.size();
         var solverWithVariables = baseSolverWithVariables(items);
         var solver = solverWithVariables.solver;
@@ -138,7 +151,9 @@ public class BasketSplitter {
             objective.setCoefficient(deliveryVariables[j],1.0);
         objective.setMinimization();
 
-        solver.solve();
+        var resultStatus = solver.solve();
+        if (resultStatus != MPSolver.ResultStatus.OPTIMAL)
+            throw new SolutionNotFoundException("Solution was not found");
 
         return (int)solver.objective().value();
     }
@@ -182,6 +197,9 @@ public class BasketSplitter {
         return new Solution((int) objective.value(), deliveryToListOfItems);
     }
 
+    /**
+     * Class to store solver and its variables.
+     */
     private static class SolverWithVariables{
         MPVariable[][] itemVariables;
         MPVariable[] deliveryVariables;
@@ -214,6 +232,16 @@ public class BasketSplitter {
         Solution(int maxItems, Map<String,List<String>> deliveryToListOfItems){
             this.maxItems = maxItems;
             this.deliveryToListOfItems = deliveryToListOfItems;
+        }
+
+    }
+
+    /**
+     * Class of an exception that is thrown when solution cannot be found.
+     */
+    public static class SolutionNotFoundException extends Exception{
+        public SolutionNotFoundException(String message) {
+            super(message);
         }
     }
 }
