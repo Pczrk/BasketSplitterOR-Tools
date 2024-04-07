@@ -41,14 +41,18 @@ public class BasketSplitter {
      * maximizing number of items in delivery type with most items.
      * @param items List of items to split.
      * @return Map with delivery types as keys and list of items as values.
-     * @throws Exception If no solution was found
+     * @throws SolutionNotFoundException If no solution was found
      */
     public Map<String, List<String>> split(List<String> items) throws SolutionNotFoundException {
         int numberOfDeliveryTypes = firstSolution(items);
+        var deliveryTypesForGivenItems = getSubsetOfDeliveryTypes(items);
+
         Solution solution = null;
         for (int j=0;j< _deliveries.size();j++){
-            var s = findSolution(numberOfDeliveryTypes,j,items);
-            solution = solution == null || s.maxItems > solution.maxItems ? s : solution;
+            if (deliveryTypesForGivenItems.contains(_deliveries.get(j))) {
+                var s = findSolution(numberOfDeliveryTypes, j, items);
+                solution = solution == null || s.maxItems > solution.maxItems ? s : solution;
+            }
         }
 
         if (solution == null)
@@ -79,7 +83,7 @@ public class BasketSplitter {
     }
 
     /**
-     * Fills {@link #_deliveries list}
+     * Helper method that fills {@link #_deliveries list}
      */
     private void fillHelperField(){
         for (var deliveries:itemPossibleDeliveries.values())
@@ -88,6 +92,18 @@ public class BasketSplitter {
                     _deliveries.add(delivery);
     }
 
+    /**
+     * Helper method that returns set of all delivery types for given items
+     * @param items List of items.
+     * @return Subset of delivery types.
+     */
+    private Set<String> getSubsetOfDeliveryTypes(List<String> items){
+        var result = new HashSet<String>();
+        for (var item:items){
+            result.addAll(itemPossibleDeliveries.get(item));
+        }
+        return result;
+    }
     /**
      * Creates solver, variables and basic constraints that are used to calculate solution.
      * @param items List of items to split.
