@@ -1,5 +1,5 @@
 ## Requirements
-Project was created with (older or newer versions might also work):
+Project was created with:
 - Java version: 21.0.1
 - Apache Maven 3.9.2
 ## Build:
@@ -11,8 +11,6 @@ Test can only be run by this maven command.
 ```maven
 mvn test
 ```
-## Approach
-Instead of making algorithm with branch and bound approach I used already written tools that use that approach since I could use any library.
 ## Mathematical description
 Firstly with model 1 I find optimal number of delivery types for given items.
 Then for all delivery types, that given items can be shipped I run model 2.
